@@ -48,7 +48,7 @@ def load_jobs_from_file():
 
 def job_json_to_post_vals(job_dict):
     description = job_dict["description"]
-    post_id = hashlib.md5(description.encode('utf-8')).hexdigest()
+    post_id = int(str(int(hashlib.sha1(description.encode('utf-8')).hexdigest(), 16))[0:12])
     title = job_dict["title"]
     job_dict["post_id"] = post_id
     return post_id, description, title, post_id, post_id
