@@ -17,9 +17,9 @@ REPLACE INTO `Q53_posts` (`ID`, `post_author`, `post_date`, `post_date_gmt`, `po
  `post_status`, `comment_status`, `ping_status`, `post_password`, `post_name`, `to_ping`, `pinged`,
   `post_modified`, `post_modified_gmt`, `post_content_filtered`, `post_parent`, `guid`, `menu_order`,
    `post_type`, `post_mime_type`, `comment_count`) 
-   VALUES (%s, 'craigslist_scraper', CURDATE(), CURDATE(), %s, %s, '', 
+   VALUES (%s, 'craigslist_scraper', NOW(), NOW(), %s, %s, '', 
    'publish', 'closed', 'closed', '', %s, '', '',
-    CURDATE(), CURDATE(), '', 0, %s, 0,
+    NOW(), NOW(), '', 0, %s, 0,
      'job_listing', '', 0)
 """
 SQL_TEMPLATE_POST_META = "REPLACE INTO `Q53_postmeta` (`post_id`, `meta_key`, `meta_value`) VALUES (%s, %s, %s)"
