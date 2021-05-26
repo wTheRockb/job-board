@@ -1,34 +1,35 @@
-import json
 import scrapy
-
-craigslist_regions = {}
-with open('craigslist_region.json') as f:
-        craigslist_regions = json.load(f)
-        craigslist_regions = craigslist_regions[0]
-
-def map_job_url_to_region(location_dict, job_url):
-    shortened_url = job_url.split(".org/")[0] + ".org"
-    return location_dict[shortened_url]
-
-def get_start_urls():
-    craigslist_regions = []
-    with open('craigslist_region.json') as f:
-        craigslist_regions = json.load(f)
-        craigslist_regions = craigslist_regions[0].keys()
-    return list(map(lambda x: x + "/search/jjj?query=landscaping", craigslist_regions))
 
 
 class JobsSpider(scrapy.Spider):
     name = 'jobs'
-
-    start_urls = get_start_urls()
-    
+    region_url_to_name = {}
+    start_urls = ['https://geo.craigslist.org/iso/us']
+    custom_settings = {
+        'DOWNLOAD_TIMEOUT': 10,
+    }
 
     def parse(self, response):
-        job_page_links = response.css('.result-row a::attr(href)').getall()
-        yield from response.follow_all(job_page_links, self.parse_job)
+        region_links = response.css('.geo-site-list a')
 
-    def parse_job(self, response):
+        for link in region_links:
+            region_name = link.css('::text').get()
+            region_url = link.css('::attr(href)').get()
+            self.region_url_to_name[region_url] = region_name
+
+        for (current_url, current_region_name) in self.region_url_to_name.items():
+            print(current_url)
+            current_query_url = current_url + "/search/jjj?query=landscaping"
+            cb_kwargs = {"region_name": current_region_name}
+            yield response.follow(current_query_url, self.parse_job_search, cb_kwargs=cb_kwargs)
+
+    def parse_job_search(self, response, region_name):
+        job_page_links = response.css('.result-row a::attr(href)').getall()
+        cb_kwargs = {"region_name": region_name}
+        yield from response.follow_all(job_page_links, self.parse_job, cb_kwargs=cb_kwargs)
+
+    @staticmethod
+    def parse_job(response, region_name):
         def extract_with_css(query):
             return response.css(query).get(default='').strip()
 
@@ -36,20 +37,15 @@ class JobsSpider(scrapy.Spider):
             return ''.join(response.css(query).getall())
 
         location_name = response.css('.postingtitle small::text').get()
-        if location_name != None:
+        if location_name is not None:
             location_name = location_name.replace("(", "").replace(")", "").strip()
 
-        ## TODO get any pictures also?
         yield {
             'title': extract_with_css('#titletextonly::text'),
             'description': extract_body('#postingbody::text'),
             'lattitude': response.css('#map::attr(data-latitude)').get(),
             'longitude': response.css('#map::attr(data-longitude)').get(),
             'location_name': location_name,
-            'region_name': map_job_url_to_region(craigslist_regions, response.url),
+            'region_name': region_name,
             'url': response.url,
         }
-
-
-
-

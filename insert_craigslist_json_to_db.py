@@ -8,7 +8,7 @@ import os
 import mysql.connector
 
 
-JOBS_FILENAME = "jobsBoard/jobsBoard/jobs2.json"
+JOBS_FILENAME = "jobsBoard/jobsBoard/jobs.json"
 
 # order:
 # ID, post_content, post_title, post_name, guid,
@@ -36,6 +36,10 @@ META_KEYS = [
         "meta_key": "geolocation_long",
         "scraper_json_key": "longitude",
     },
+    {
+        "meta_key": "_job_location",
+        "scraper_json_key": "region_name",
+    }
 ]
 
 
